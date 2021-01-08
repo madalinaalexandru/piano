@@ -1,19 +1,19 @@
-/*
-  This program blinks pin 13 of the Arduino (the
-  built-in LED)
-*/
-
 #define NOTE_A 220
 #define NOTE_B 247
-#define NOTE_C 131
+#define NOTE_C 139
 #define NOTE_D 147
 #define NOTE_E 165
 
-volatile int recordedNotes[100];
+volatile int recordedNotes[500];
 volatile int nbOfNotesInSong;
+
+volatile int durations[20];
+volatile int song[20];
 
 volatile int startButton;
 volatile int stopButton;
+
+volatile int cnt = 0;
 
 void setup()
 {
@@ -53,54 +53,104 @@ void setup()
 void loop()
 {
   if(digitalRead(7) == 1){
-  	tone(9, NOTE_A, 100);
+    tone(9, NOTE_A, 100);
     displayRed();
-    
-    if(startButton == 1){
-      recordedNotes[nbOfNotesInSong] = NOTE_A;
+    if(startButton == 1 && nbOfNotesInSong <= 500){
+      recordedNotes[nbOfNotesInSong] = 220;
       nbOfNotesInSong++;
     }
   }
   
   if(digitalRead(8) == 1){
-  	tone(9, NOTE_B, 100);
+    tone(9, NOTE_B, 100);
     displayBlue();
     
-    if(startButton == 1){
-      recordedNotes[nbOfNotesInSong] = NOTE_B;
+    if(startButton == 1 && nbOfNotesInSong <= 500){
+      recordedNotes[nbOfNotesInSong] = 247;
       nbOfNotesInSong++;
     }
   }
   
   if(digitalRead(4) == 1){
-  	tone(9, NOTE_C, 100);
+    tone(9, NOTE_C, 100);
     displayGreen();
     
-    if(startButton == 1){
-      recordedNotes[nbOfNotesInSong] = NOTE_C;
+    if(startButton == 1 && nbOfNotesInSong <= 500){
+      recordedNotes[nbOfNotesInSong] = 139;
       nbOfNotesInSong++;
     }
   }
   
   if(digitalRead(5) == 1){
-  	tone(9, NOTE_D, 100);
+    tone(9, NOTE_D, 100);
     displayYellow();
     
-    if(startButton == 1){
-      recordedNotes[nbOfNotesInSong] = NOTE_D;
+    if(startButton == 1 && nbOfNotesInSong <= 500){
+      recordedNotes[nbOfNotesInSong] = 147;
       nbOfNotesInSong++;
     }
   }
   
   if(digitalRead(6) == 1){
-  	tone(9, NOTE_E, 100);
+    tone(9, NOTE_E, 100);
     displayPurple();
     
-    if(startButton == 1){
-      recordedNotes[nbOfNotesInSong] = NOTE_E;
+    if(startButton == 1 && nbOfNotesInSong <= 500){
+      recordedNotes[nbOfNotesInSong] = 165;
       nbOfNotesInSong++;
     }
   }
+  
+  if(stopButton == 1){
+    replay();
+  }
+}
+
+void replay(){
+  int duration = 0;
+  for(int i = 0; i < nbOfNotesInSong - 1; i++){
+    duration = 0;
+    while(recordedNotes[i] == recordedNotes[i+1]){
+      i++;
+      duration++;
+    }
+    
+    song[cnt] = recordedNotes[i];
+    durations[cnt] = duration;
+    cnt++;
+  }
+  
+  for(int i = 0; i < cnt; i++){
+    
+    if(song[i] == NOTE_A){
+       displayRed();
+    }
+    
+    if(song[i] == NOTE_B){
+       displayBlue();
+    }
+    
+    if(song[i] == NOTE_C){
+       displayGreen();
+    }
+    
+    if(song[i] == NOTE_D){
+       displayYellow();
+    }
+    
+    if(song[i] == NOTE_E){
+       displayPurple();
+    }
+    
+    tone(9, song[i], durations[i] * 10);
+    int pauseBetweenNotes = durations[i] * 13;
+  delay(pauseBetweenNotes);
+  }
+  
+  ledOut();
+  
+  noTone(9);
+  stopButton = 0;
 }
 
 void startRecording(){
@@ -108,18 +158,25 @@ void startRecording(){
   stopButton = 0;
   nbOfNotesInSong = 0;
   
+  ledOut();
+  
   Serial.println("Recording!");
 }
 
 void stopRecording(){
   startButton = 0;
   stopButton = 1;
+  cnt = 0;
+  
+  ledOut();
   
   Serial.println("Recording stopped!");
-  Serial.println(nbOfNotesInSong);
-  for(int i = 0; i < nbOfNotesInSong; i++){
-  	tone(9, recordedNotes[i], 100);
-  }
+}
+
+void ledOut(){
+  digitalWrite(13, LOW);
+  digitalWrite(12, LOW);
+  digitalWrite(11, LOW);
 }
 
 void displayRed(){
